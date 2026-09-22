@@ -31,7 +31,7 @@ O **PDXStorage** é um cofre de armazenamento em nuvem privada de alta performan
 
 ### 1. Clonar o Repositório
 ```bash
-git clone https://github.com/seu-usuario/PDXStorage.git
+git clone https://github.com/pladix/PDXStorage.git
 cd PDXStorage
 ```
 
