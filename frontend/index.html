@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PDXStorage - Seu Cofre Pessoal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/security.js"></script>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <header class="dashboard-header">
+        <div class="brand-logo-inline">
+            <div class="brand-icon" style="width: 40px; height: 40px; font-size: 1.15rem; margin-bottom: 0;">
+                <i class="fas fa-vault"></i>
+            </div>
+            <span>PDXStorage</span>
+        </div>
+        <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <button class="btn-primary btn-sm" id="btn-open-profile" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd;">
+                <i class="fas fa-user-gear"></i> Meu Perfil
+            </button>
+            <button class="btn-primary btn-sm" id="btn-logout" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;">
+                <i class="fas fa-arrow-right-from-bracket"></i> Encerrar Sessão
+            </button>
+        </div>
+    </header>
+
+    <main class="glass-panel" style="max-width: 100%; padding: 2rem;">
+        
+        <div class="quota-box" id="quota-container">
+            <div class="quota-header">
+                <div class="quota-title">
+                    <i class="fas fa-hard-drive" style="color: #60a5fa;"></i>
+                    <span>Cota de Armazenamento Gratuita</span>
+                </div>
+                <div class="quota-badge" id="quota-percent-badge">0%</div>
+            </div>
+            <div class="quota-meter-track">
+                <div class="quota-meter-fill" id="quota-meter-bar"></div>
+            </div>
+            <div class="quota-footer">
+                <span id="quota-usage-text">0.00 GB usados de 20.00 GB</span>
+                <span id="quota-remaining-text">20.00 GB livres</span>
+            </div>
+        </div>
+
+        <div class="upload-zone" id="upload-zone">
+            <i class="fas fa-cloud-arrow-up"></i>
+            <h3>Toque ou arraste arquivos para enviar</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.35rem;">
+                Fragmentação em tempo real via WebSocket com criptografia AES-256 no destino (Máx: 250MB).
+            </p>
+            <input type="file" id="file-input" class="hidden">
+        </div>
+
+        <div id="upload-progress-container" class="progress-box hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.85rem; color: #cbd5e1;"><i class="fas fa-sync fa-spin" style="margin-right: 6px; color: var(--primary);"></i> Enviando: <strong id="upload-filename"></strong></span>
+                <span id="upload-percentage" style="font-size: 0.85rem; font-weight: 600; color: #60a5fa;">0%</span>
+            </div>
+            <div class="progress-bar-container" style="display: block;">
+                <div class="progress-bar" id="upload-progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="files-header-row">
+            <div class="section-title" style="margin-bottom: 0;">
+                <i class="fas fa-shield-halved" style="color: #60a5fa;"></i>
+                <span>Seus Arquivos Armazenados</span>
+            </div>
+            <button class="btn-primary btn-sm" id="btn-download-all-zip" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7;">
+                <i class="fas fa-file-zipper"></i> Baixar Tudo (.ZIP)
+            </button>
+        </div>
+
+        <div class="files-controls-panel">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="file-search-input" placeholder="Pesquisar arquivo pelo nome..." autocomplete="off">
+                <button type="button" id="btn-clear-search" class="btn-clear-search hidden" title="Limpar pesquisa">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="category-filters" id="category-filters">
+                <button type="button" class="filter-chip active" data-category="all">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Todos</span>
+                    <span class="filter-count" id="count-all">0</span>
+                </button>
+                <button type="button" class="filter-chip" data-category="image">
+                    <i class="fas fa-image"></i>
+                    <span>Fotos</span>
+                    <span class="filter-count" id="count-image">0</span>
+                </button>
+                <button type="button" class="filter-chip" data-category="video">
+                    <i class="fas fa-video"></i>
+                    <span>Vídeos</span>
+                    <span class="filter-count" id="count-video">0</span>
+                </button>
+                <button type="button" class="filter-chip" data-category="audio">
+                    <i class="fas fa-music"></i>
+                    <span>Áudios</span>
+                    <span class="filter-count" id="count-audio">0</span>
+                </button>
+                <button type="button" class="filter-chip" data-category="doc">
+                    <i class="fas fa-file-lines"></i>
+                    <span>Documentos / Textos</span>
+                    <span class="filter-count" id="count-doc">0</span>
+                </button>
+                <button type="button" class="filter-chip" data-category="archive">
+                    <i class="fas fa-file-zipper"></i>
+                    <span>Compactados / Outros</span>
+                    <span class="filter-count" id="count-archive">0</span>
+                </button>
+            </div>
+
+            <div class="selection-toolbar" id="selection-toolbar">
+                <div class="selection-left">
+                    <label class="custom-check-label">
+                        <input type="checkbox" id="select-all-checkbox">
+                        <span class="check-box-custom"></span>
+                        <span class="check-text">Selecionar todos</span>
+                    </label>
+                    <span id="selected-counter-badge" class="selected-counter-badge hidden">0 selecionados</span>
+                </div>
+                <div class="selection-actions" id="selection-actions">
+                    <button type="button" class="btn-primary btn-sm hidden" id="btn-download-selected" style="background: rgba(59, 130, 246, 0.25); border-color: rgba(59, 130, 246, 0.5); color: #93c5fd;">
+                        <i class="fas fa-download"></i> Baixar Selecionados
+                    </button>
+                    <button type="button" class="btn-primary btn-danger btn-sm hidden" id="btn-delete-selected">
+                        <i class="fas fa-trash-can"></i> Excluir Selecionados
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="file-list" id="file-list">
+        </div>
+
+    </main>
+</div>
+
+<div id="profile-modal" class="modal-overlay hidden">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-shield" style="color: #60a5fa;"></i> Meu Perfil & Segurança</h3>
+            <button class="modal-close-btn" id="btn-close-profile"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="prof-stat-user">-</div>
+                <div class="stat-label">Usuário</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="prof-stat-files">0</div>
+                <div class="stat-label">Arquivos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="prof-stat-size">0 MB</div>
+                <div class="stat-label">Armazenamento</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="prof-stat-2fa" style="font-size: 0.95rem;">-</div>
+                <div class="stat-label">Proteção 2FA</div>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-card-title">
+                <i class="fas fa-clock-rotate-left" style="color: #10b981;"></i> Auto-Limpeza de Arquivos
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.85rem; line-height: 1.4;">
+                Defina um tempo limite para que seus arquivos sejam automaticamente excluídos com segurança, mantendo seu cofre leve e sem rastros.
+            </p>
+            <div class="input-group">
+                <select id="retention-select">
+                    <option value="0">Desativado (Manter arquivos permanentemente)</option>
+                    <option value="1">Excluir automaticamente após 1 dia</option>
+                    <option value="7">Excluir automaticamente após 7 dias</option>
+                    <option value="15">Excluir automaticamente após 15 dias</option>
+                    <option value="30">Excluir automaticamente após 30 dias</option>
+                </select>
+            </div>
+            <button class="btn-primary btn-sm" id="btn-save-retention" style="width: 100%; justify-content: center;">
+                <i class="fas fa-floppy-disk"></i> Salvar Política de Retenção
+            </button>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-card-title">
+                <i class="fas fa-arrows-rotate" style="color: #38bdf8;"></i> Armazenamento Cíclico (20GB)
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.85rem; line-height: 1.4;">
+                Ao atingir a cota de 20GB, o sistema descarta automaticamente os arquivos mais antigos para abrir espaço para os mais recentes.
+            </p>
+            <div class="switch-container">
+                <span style="font-size: 0.88rem; font-weight: 500;" id="cyclic-status-label">Modo Cíclico: Desativado</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="cyclic-toggle">
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-card-title">
+                <i class="fas fa-key" style="color: #60a5fa;"></i> Alterar Senha de Acesso
+            </div>
+            <div class="input-group">
+                <label for="pwd-current">Senha Atual</label>
+                <div class="input-container">
+                    <i class="fas fa-key"></i>
+                    <input type="password" id="pwd-current" placeholder="Digite sua senha atual">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="pwd-new">Nova Senha (Mínimo 8 caracteres)</label>
+                <div class="input-container">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="pwd-new" placeholder="Nova senha segura">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="pwd-confirm">Confirmar Nova Senha</label>
+                <div class="input-container">
+                    <i class="fas fa-check-double"></i>
+                    <input type="password" id="pwd-confirm" placeholder="Repita a nova senha">
+                </div>
+            </div>
+            <button class="btn-primary btn-sm" id="btn-change-password" style="width: 100%; justify-content: center;">
+                <i class="fas fa-check"></i> Atualizar Senha
+            </button>
+        </div>
+
+        <div class="profile-card" style="border-color: rgba(239, 68, 68, 0.25); background: rgba(239, 68, 68, 0.04);">
+            <div class="profile-card-title" style="color: #fca5a5;">
+                <i class="fas fa-triangle-exclamation"></i> Zona Crítica
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Ações irreversíveis que removem permanentemente seus dados do servidor.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <button class="btn-primary btn-danger btn-sm" id="btn-wipe-files" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-trash-can"></i> Limpar Todos os Arquivos da Conta
+                </button>
+                <button class="btn-primary btn-danger btn-sm" id="btn-delete-account" style="width: 100%; justify-content: center; background: rgba(239,68,68,0.25); border: 1px solid rgba(239,68,68,0.5);">
+                    <i class="fas fa-user-xmark"></i> Excluir Conta Permanentemente
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="preview-modal" class="modal-overlay hidden">
+    <div class="modal-dialog preview-modal-dialog">
+        <div class="modal-header">
+            <h3 id="preview-title"><i class="fas fa-play" style="color: #60a5fa;"></i> Visualizador</h3>
+            <button class="modal-close-btn" id="btn-close-preview"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="media-viewer-box" id="media-viewer-box">
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <span id="preview-filesize" style="font-size: 0.85rem; color: var(--text-muted);"></span>
+            <button class="btn-primary btn-sm" id="btn-preview-download" style="width: auto;">
+                <i class="fas fa-download"></i> Baixar Arquivo
+            </button>
+        </div>
+    </div>
+</div>
+
+<footer class="app-footer">
+    <div class="footer-content">
+        <span>Desenvolvido com carinho por <a href="https://t.me/pladixoficial" target="_blank" rel="noopener noreferrer" class="footer-author"><i class="fab fa-telegram-plane"></i> @pladixoficial</a></span>
+        <span class="footer-badge">PDXStorage &bull; Todos os direitos reservados</span>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

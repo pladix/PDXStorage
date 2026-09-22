@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PDXStorage Admin - Painel de Controle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/security.js"></script>
+</head>
+<body class="admin-body">
+
+<div id="admin-lockscreen" class="admin-lockscreen-wrapper">
+    <div class="admin-ambient-glow glow-blue"></div>
+    <div class="admin-ambient-glow glow-red"></div>
+    
+    <div class="admin-lockscreen-card">
+        <div class="admin-lock-pill">
+            <span class="admin-pill-dot"></span>
+            <span>PDX STORAGE &bull; MASTER CONSOLE</span>
+        </div>
+        <div class="admin-lock-icon-wrap">
+            <div class="admin-lock-icon-glow"></div>
+            <div class="brand-icon admin-lock-icon">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+        </div>
+        <h2 class="admin-lock-title">Painel Administrativo</h2>
+        <p class="admin-lock-subtitle">Digite a chave de segurança mestra para autenticar e gerenciar o servidor</p>
+        
+        <form id="admin-login-form">
+            <div class="input-group">
+                <div class="input-container admin-key-container">
+                    <i class="fas fa-key admin-input-icon"></i>
+                    <input type="password" id="admin-password-input" class="admin-key-input" placeholder="Chave de segurança mestre..." autocomplete="off" required>
+                    <button type="button" id="btn-toggle-admin-pwd" class="btn-toggle-eye" title="Mostrar/ocultar chave">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" id="btn-admin-submit" class="btn-primary btn-admin-unlock">
+                <i class="fas fa-unlock"></i> Desbloquear Painel
+            </button>
+        </form>
+    </div>
+</div>
+
+<div id="admin-dashboard-container" class="dashboard-container hidden" style="max-width: 1180px;">
+    <header class="dashboard-header admin-header">
+        <div class="brand-logo-inline">
+            <div class="brand-icon" style="width: 40px; height: 40px; font-size: 1.15rem; margin-bottom: 0; background: linear-gradient(135deg, #ef4444, #b91c1c);">
+                <i class="fas fa-server"></i>
+            </div>
+            <div>
+                <span style="font-size: 1.25rem;">PDXStorage</span>
+                <span class="admin-badge">ADMIN CONSOLE</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <button class="btn-primary btn-sm" id="btn-admin-refresh" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.4); color: #93c5fd;">
+                <i class="fas fa-sync"></i> Atualizar
+            </button>
+            <a href="/dashboard" class="btn-primary btn-sm" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #6ee7b7; text-decoration: none;">
+                <i class="fas fa-vault"></i> Meu Cofre
+            </a>
+            <button class="btn-primary btn-sm" id="btn-admin-logout" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">
+                <i class="fas fa-power-off"></i> Sair do Admin
+            </button>
+        </div>
+    </header>
+
+    <main class="glass-panel" style="max-width: 100%; padding: 2rem;">
+        
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <div class="admin-stat-val" id="stat-total-users">0</div>
+                    <div class="admin-stat-label">Usuários Cadastrados</div>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+                    <i class="fas fa-hard-drive"></i>
+                </div>
+                <div>
+                    <div class="admin-stat-val" id="stat-storage-used">0.00 GB</div>
+                    <div class="admin-stat-label">Armazenamento Consumido</div>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+                    <i class="fas fa-file-shield"></i>
+                </div>
+                <div>
+                    <div class="admin-stat-val" id="stat-total-files">0</div>
+                    <div class="admin-stat-label">Arquivos no Servidor</div>
+                </div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+                    <i class="fas fa-user-lock"></i>
+                </div>
+                <div>
+                    <div class="admin-stat-val" id="stat-users-status">0 / 0</div>
+                    <div class="admin-stat-label">Ativos / Bloqueados</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-section-header">
+            <div class="section-title" style="margin-bottom: 0;">
+                <i class="fas fa-users-gear" style="color: #60a5fa;"></i>
+                <span>Gerenciamento de Usuários & Armazenamento</span>
+            </div>
+            <div class="search-box" style="max-width: 340px;">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="admin-search-users" placeholder="Filtrar por nome de usuário..." autocomplete="off">
+            </div>
+        </div>
+
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuário</th>
+                        <th>Cadastro</th>
+                        <th>Consumo / Cota</th>
+                        <th>Arquivos</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Ações de Controle</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-users-tbody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                            <i class="fas fa-circle-notch fa-spin"></i> Carregando dados do servidor...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+</div>
+
+<div id="admin-files-modal" class="modal-overlay hidden">
+    <div class="modal-dialog" style="max-width: 780px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-folder-tree" style="color: #60a5fa;"></i> Arquivos de <span id="modal-target-username"></span></h3>
+            <button class="modal-close-btn" id="btn-close-files-modal"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="modal-files-list" class="admin-modal-files-box">
+        </div>
+    </div>
+</div>
+
+<div id="admin-quota-modal" class="modal-overlay hidden">
+    <div class="modal-dialog" style="max-width: 480px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-database" style="color: #38bdf8;"></i> Ajustar Cota de Armazenamento</h3>
+            <button class="modal-close-btn" id="btn-close-quota-modal"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="padding: 1rem 0;">
+            <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 1.25rem;">
+                Defina o limite de armazenamento para o usuário <strong id="quota-modal-user" style="color: #60a5fa;"></strong>:
+            </p>
+            <div class="input-group">
+                <label for="input-custom-gb">Cota em Gigabytes (GB)</label>
+                <div class="input-container">
+                    <i class="fas fa-hard-drive"></i>
+                    <input type="number" id="input-custom-gb" min="1" max="10000" step="1" placeholder="Ex: 50">
+                </div>
+            </div>
+            <div class="quota-quick-buttons">
+                <button type="button" class="btn-quota-preset" data-gb="20">20 GB (Padrão)</button>
+                <button type="button" class="btn-quota-preset" data-gb="50">50 GB</button>
+                <button type="button" class="btn-quota-preset" data-gb="100">100 GB</button>
+                <button type="button" class="btn-quota-preset" data-gb="250">250 GB</button>
+                <button type="button" class="btn-quota-preset" data-gb="500">500 GB</button>
+            </div>
+            <button type="button" id="btn-save-quota" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 1.5rem;">
+                <i class="fas fa-floppy-disk"></i> Salvar Nova Cota
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

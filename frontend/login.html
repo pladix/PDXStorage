@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PDXStorage - Acesso Seguro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/security.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <script src="js/pdx_shield.js"></script>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="glass-panel" id="auth-panel">
+        
+        <div class="brand-header">
+            <div class="brand-icon">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <h2 class="brand-title" id="auth-title">PDXStorage</h2>
+            <p class="brand-subtitle" id="auth-subtitle">Cofre de Arquivos em Nuvem Privada</p>
+        </div>
+        
+        <div id="login-form">
+            <div class="input-group">
+                <label for="login-username">Nome de Usuário</label>
+                <div class="input-container">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="login-username" placeholder="Digite seu usuário" autocomplete="username">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="login-password">Senha de Acesso</label>
+                <div class="input-container">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="Digite sua senha" autocomplete="current-password">
+                </div>
+            </div>
+
+            <div id="login-pdx-shield-container"></div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin: 0.85rem 0; font-size: 0.85rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-muted); user-select: none;">
+                    <input type="checkbox" id="remember-me" checked style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; margin: 0; padding: 0;">
+                    <span>Salvar sessão atual (renovação contínua)</span>
+                </label>
+            </div>
+
+            <button class="btn-primary" id="btn-login">
+                <i class="fas fa-arrow-right-to-bracket"></i> Acessar Cofre
+            </button>
+            <div class="switch-form">
+                Novo por aqui? <a id="show-register">Criar uma conta</a>
+            </div>
+        </div>
+
+        <div id="login-2fa-step-form" class="hidden">
+            <div style="text-align: center; margin-bottom: 1.25rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.35rem;"><i class="fas fa-key" style="color: #60a5fa;"></i> Verificação em 2 Etapas</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">
+                    Digite o código de 6 dígitos gerado pelo seu aplicativo autenticador.
+                </p>
+            </div>
+            <div class="input-group">
+                <label for="step-2fa-code">Código do Autenticador (OTP)</label>
+                <div class="input-container">
+                    <i class="fas fa-shield-halved"></i>
+                    <input type="text" id="step-2fa-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                </div>
+            </div>
+            <button class="btn-primary btn-success" id="btn-submit-step-2fa">
+                <i class="fas fa-check"></i> Confirmar e Acessar
+            </button>
+            <div class="switch-form">
+                <a id="btn-back-login" style="color: var(--text-muted); cursor: pointer;"><i class="fas fa-arrow-left"></i> Voltar para Login</a>
+            </div>
+        </div>
+
+        <div id="register-form" class="hidden">
+            <div class="input-group">
+                <label for="reg-username">Escolha seu Usuário</label>
+                <div class="input-container">
+                    <i class="fas fa-user-plus"></i>
+                    <input type="text" id="reg-username" placeholder="Nome de usuário desejado" autocomplete="username">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="reg-password">Crie uma Senha Segura</label>
+                <div class="input-container">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres (letras e números)" autocomplete="new-password">
+                </div>
+            </div>
+
+            <div id="register-pdx-shield-container"></div>
+
+            <button class="btn-primary btn-success" id="btn-register">
+                <i class="fas fa-user-check"></i> Concluir Cadastro
+            </button>
+            <div class="switch-form">
+                Já possui conta? <a id="show-login">Fazer Login</a>
+            </div>
+        </div>
+
+        <div id="setup-2fa-form" class="hidden">
+            <div style="text-align: center; margin-bottom: 1.25rem;">
+                <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;"><i class="fas fa-qrcode" style="color: #60a5fa;"></i> Ativar Proteção 2FA (Opcional)</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                    Proteja ainda mais sua conta escaneando este código QR com o Google Authenticator ou Authy.
+                </p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div id="qr-code-container">
+                    <img id="qr-img" src="" alt="QR Code de Configuração 2FA">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="setup-2fa-code">Código do Autenticador</label>
+                <div class="input-container">
+                    <i class="fas fa-shield"></i>
+                    <input type="text" id="setup-2fa-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="off">
+                    <input type="hidden" id="setup-2fa-secret">
+                </div>
+            </div>
+            
+            <button class="btn-primary btn-success" id="btn-confirm-2fa">
+                <i class="fas fa-check-shield"></i> Confirmar e Ativar 2FA
+            </button>
+            <div class="switch-form">
+                <a id="skip-2fa" style="color: var(--text-muted); font-size: 0.85rem; cursor: pointer;">Ir para o Cofre</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<footer class="app-footer">
+    <div class="footer-content">
+        <span>Desenvolvido com carinho por <a href="https://t.me/pladixoficial" target="_blank" rel="noopener noreferrer" class="footer-author"><i class="fab fa-telegram-plane"></i> @pladixoficial</a></span>
+        <span class="footer-badge">PDXStorage &bull; Todos os direitos reservados</span>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>
